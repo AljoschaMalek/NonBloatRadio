@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📻 Minimalist Radio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .radio-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+            font-weight: 300;
+        }
+
+        .station-button {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            margin: 15px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .station-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .station-button.active {
+            background: linear-gradient(135deg, #43a047 0%, #66bb6a 100%);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .control-btn {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            min-width: 80px;
+        }
+
+        .control-btn:hover {
+            background: #555;
+            transform: scale(1.05);
+        }
+
+        .control-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .volume-container {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .volume-slider {
+            width: 150px;
+            height: 5px;
+            background: #ddd;
+            border-radius: 5px;
+            appearance: none;
+            outline: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .volume-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .now-playing {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            color: #666;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+            background: #ccc;
+        }
+
+        .status-indicator.playing {
+            background: #43a047;
+            animation: blink 1.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes blink {
+            from { opacity: 1; }
+            to { opacity: 0.3; }
+        }
+
+        @media (max-width: 480px) {
+            .radio-container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .station-button {
+                padding: 18px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="radio-container">
+        <h1>📻 Minimalist Radio</h1>
+        
+        <button class="station-button" onclick="playStation('station1')" id="station1-btn">
+            🇧🇷 Brazilian Radio
+            <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 5px;">Testing Stream</div>
+        </button>
+        
+        <button class="station-button" onclick="playStation('station2')" id="station2-btn">
+            🇳🇱 NPO Radio 1
+            <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 5px;">News & Current Affairs</div>
+        </button>
+        
+        <div class="controls">
+            <button class="control-btn" onclick="stopRadio()" id="stop-btn">Stop</button>
+            <button class="control-btn" onclick="toggleMute()" id="mute-btn">Mute</button>
+        </div>
+        
+        <div class="volume-container">
+            <span>🔊</span>
+            <input type="range" class="volume-slider" min="0" max="100" value="70" id="volume-slider">
+            <span id="volume-display">70%</span>
+        </div>
+        
+        <div class="now-playing" id="now-playing">
+            <span class="status-indicator" id="status-indicator"></span>
+            Select a station to start listening
+        </div>
+        
+        <audio id="radio-player" preload="none"></audio>
+    </div>
+
+    <script>
+        const stations = {
+            station1: {
+                name: 'Brazilian Radio',
+                url: 'https://cast4.hoost.com.br:8441/stream',
+                fallback: 'https://playerservices.streamtheworld.com/api/livestream-redirect/JOVEMPANNEWSSP.mp3'
+            },
+            station2: {
+                name: 'NPO Radio 1',
+                url: 'http://icecast.omroep.nl/radio1-bb-mp3',
+                fallback: 'https://icecast.omroep.nl/radio1-sb-mp3'
+            }
+        };
+
+        const player = document.getElementById('radio-player');
+        const nowPlaying = document.getElementById('now-playing');
+        const statusIndicator = document.getElementById('status-indicator');
+        const volumeSlider = document.getElementById('volume-slider');
+        const volumeDisplay = document.getElementById('volume-display');
+        const muteBtn = document.getElementById('mute-btn');
+        const stopBtn = document.getElementById('stop-btn');
+
+        let currentStation = null;
+        let isPlaying = false;
+        let isMuted = false;
+        let previousVolume = 70;
+
+        player.volume = 0.7;
+
+        function playStation(stationId) {
+            const station = stations[stationId];
+            if (!station) return;
+
+            document.querySelectorAll('.station-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.getElementById(stationId + '-btn').classList.add('active');
+            currentStation = stationId;
+            
+            updateNowPlaying(`Loading ${station.name}...`);
+            statusIndicator.classList.remove('playing');
+            
+            player.src = station.url;
+            player.load();
+            
+            const playPromise = player.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    isPlaying = true;
+                    updateNowPlaying(`Now playing: ${station.name}`);
+                    statusIndicator.classList.add('playing');
+                }).catch(error => {
+                    console.error('Playback failed:', error);
+                    tryFallback(stationId);
+                });
+            }
+        }
+
+        function tryFallback(stationId) {
+            const station = stations[stationId];
+            updateNowPlaying(`Trying alternative stream for ${station.name}...`);
+            
+            player.src = station.fallback;
+            player.load();
+            
+            const playPromise = player.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    isPlaying = true;
+                    updateNowPlaying(`Now playing: ${station.name} (alt)`);
+                    statusIndicator.classList.add('playing');
+                }).catch(error => {
+                    console.error('Fallback also failed:', error);
+                    updateNowPlaying(`Unable to connect to ${station.name}. Please try again.`);
+                    resetUI();
+                });
+            }
+        }
+
+        function stopRadio() {
+            player.pause();
+            player.currentTime = 0;
+            isPlaying = false;
+            resetUI();
+            updateNowPlaying('Radio stopped. Select a station to start listening.');
+        }
+
+        function toggleMute() {
+            if (isMuted) {
+                player.volume = previousVolume / 100;
+                volumeSlider.value = previousVolume;
+                volumeDisplay.textContent = previousVolume + '%';
+                muteBtn.textContent = 'Mute';
+                isMuted = false;
+            } else {
+                previousVolume = volumeSlider.value;
+                player.volume = 0;
+                volumeSlider.value = 0;
+                volumeDisplay.textContent = '0%';
+                muteBtn.textContent = 'Unmute';
+                isMuted = true;
+            }
+        }
+
+        function resetUI() {
+            document.querySelectorAll('.station-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            statusIndicator.classList.remove('playing');
+            currentStation = null;
+        }
+
+        function updateNowPlaying(text) {
+            nowPlaying.innerHTML = `<span class="status-indicator" id="status-indicator"></span>${text}`;
+            const newIndicator = document.getElementById('status-indicator');
+            if (isPlaying) {
+                newIndicator.classList.add('playing');
+            }
+        }
+
+        volumeSlider.addEventListener('input', (e) => {
+            const volume = e.target.value;
+            player.volume = volume / 100;
+            volumeDisplay.textContent = volume + '%';
+            
+            if (volume == 0) {
+                isMuted = true;
+                muteBtn.textContent = 'Unmute';
+            } else {
+                isMuted = false;
+                muteBtn.textContent = 'Mute';
+            }
+        });
+
+        player.addEventListener('error', (e) => {
+            console.error('Audio error:', e);
+            if (currentStation) {
+                tryFallback(currentStation);
+            }
+        });
+
+        player.addEventListener('waiting', () => {
+            if (currentStation) {
+                updateNowPlaying(`Buffering ${stations[currentStation].name}...`);
+            }
+        });
+
+        player.addEventListener('playing', () => {
+            isPlaying = true;
+            statusIndicator.classList.add('playing');
+        });
+
+        player.addEventListener('pause', () => {
+            isPlaying = false;
+            statusIndicator.classList.remove('playing');
+        });
+
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case '1':
+                    playStation('station1');
+                    break;
+                case '2':
+                    playStation('station2');
+                    break;
+                case ' ':
+                    e.preventDefault();
+                    if (isPlaying) {
+                        stopRadio();
+                    }
+                    break;
+                case 'm':
+                case 'M':
+                    toggleMute();
+                    break;
+            }
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && isPlaying) {
+                player.play().catch(e => console.log('Background play failed:', e));
+            }
+        });
+    </script>
+</body>
+</html>
