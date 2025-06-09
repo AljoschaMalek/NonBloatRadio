@@ -3,7 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#667eea">
     <title>📻 Minimalist Radio</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDEyOCAxMjgiIGZpbGw9IiM2NjdlZWEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHJlY3QgeD0iMzIiIHk9IjMyIiB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgZmlsbD0iI2Y3ZjdmNyIvPgogIDxyZWN0IHg9IjQzIiB5PSI0MyIgd2lkdGg9IjQyIiBoZWlnaHQ9IjQyIiByeD0iNiIgZmlsbD0iIzY2N2VlYSIvPgo8L3N2Zz4=">
+    
     <style>
         * {
             margin: 0;
@@ -170,6 +178,29 @@
             to { opacity: 0.3; }
         }
 
+        /* PWA Styles */
+        @media (display-mode: standalone) {
+            body {
+                padding-top: 20px;
+                user-select: none;
+                -webkit-user-select: none;
+                -webkit-touch-callout: none;
+            }
+            
+            .radio-container {
+                box-shadow: none;
+                border-radius: 15px;
+            }
+        }
+
+        /* Prevent text selection on buttons */
+        .station-button, .control-btn {
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        /* Better mobile touch targets */
         @media (max-width: 480px) {
             .radio-container {
                 padding: 30px 20px;
@@ -182,6 +213,18 @@
             .station-button {
                 padding: 18px;
                 font-size: 1rem;
+                min-height: 60px;
+                touch-action: manipulation;
+            }
+            
+            .control-btn {
+                min-height: 50px;
+                touch-action: manipulation;
+            }
+            
+            .volume-slider {
+                height: 8px;
+                touch-action: manipulation;
             }
         }
     </style>
@@ -398,11 +441,30 @@
             }
         });
 
+        // PWA Installation and Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .catch(error => console.log('SW registration failed'));
+            });
+        }
+
+        // Keep audio playing in background
         document.addEventListener('visibilitychange', () => {
             if (document.hidden && isPlaying) {
                 player.play().catch(e => console.log('Background play failed:', e));
             }
         });
+
+        // Prevent zoom on double tap
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            let now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
     </script>
 </body>
 </html>
